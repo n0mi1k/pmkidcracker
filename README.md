@@ -13,6 +13,8 @@ python pmkidcracker.py -s <ssid> -ap <apmac> -c <clientmac> -p <pmkid> -w <wordl
 
 ## Obtaining PMKID
 
+Below are the steps to obtain the PMKID manually by inspecting the packets in WireShark. You may use Hcxtools or Bettercap to quickly obtain the PMKID without the below steps. 
+
 To obtain the PMKID, put your wireless antenna in monitor mode, start capturing all packets with airodump-ng or similar tools. Then connect to the AP using an invalid password to capture EAPOL 1 message. Follow the next 3 steps to obtain the fields needed for the arguments.
 
 **Open the pcap in WireShark:**
