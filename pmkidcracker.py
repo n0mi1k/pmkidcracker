@@ -10,16 +10,16 @@ def calculate_pmkid(pmk, ap_mac, sta_mac):
     return pmkid
 
 
-def find_pw(pw, ssid, ap_mac, sta_mac, captured_pmkid, stop_event):
-    if stop_event.is_set():
-        return
-    password = pw.strip()
-    pmk = pbkdf2_hmac("sha1", password.encode("utf-8"), ssid, 4096, 32)
-    pmkid = calculate_pmkid(pmk, ap_mac, sta_mac)
-    if pmkid == captured_pmkid:
-        print(f"\n[+] CRACKED WPA2 KEY: {password}")
-        stop_event.set()
-
+def find_pw_chunk(pw_list, ssid, ap_mac, sta_mac, captured_pmkid, stop_event):
+    for pw in pw_list:
+        if stop_event.is_set():
+            break
+        password = pw.strip()
+        pmk = pbkdf2_hmac("sha1", password.encode("utf-8"), ssid, 4096, 32)
+        pmkid = calculate_pmkid(pmk, ap_mac, sta_mac)
+        if pmkid == captured_pmkid:
+            print(f"\n[+] CRACKED WPA2 KEY: {password}")
+            stop_event.set()
 
 def main():
     parser = argparse.ArgumentParser(prog='pmkidcrack', 
@@ -32,7 +32,7 @@ def main():
     parser.add_argument("-c", "--clientmac", help="Client Mac Addr, the initiator", required=True)
     parser.add_argument("-p", "--pmkid", help="Message 1 PMKID in HEX", required=True)
     parser.add_argument("-w", "--wordlist", help="Dictionary wordlist to use", required=True)
-    parser.add_argument("-t", "--threads", help="Number of threads (Default=10)", required=True)
+    parser.add_argument("-t", "--threads", help="Number of threads (Default=10)", required=False)
     parser.add_argument("-a", "--automatic", help="Specify PCAP file to use", required=False) # In development (Not Implemented)
     args = parser.parse_args()
 
@@ -41,7 +41,9 @@ def main():
     client = args.clientmac
     pmkid = args.pmkid
     wordlist = args.wordlist
-    workers = int(args.threads)
+
+    if args.threads is not None:
+        workers = int(args.threads)
 
     print(f"[*] Initializing PMKID Cracker")
     print(f"[*] SSID: {args.ssid}")
@@ -49,7 +51,7 @@ def main():
     print(f"[*] Client Mac: {args.clientmac}")
     print(f"[*] PMKID: {args.pmkid}")
     print(f"[*] Using Wordlist: {args.wordlist}")
-    print(f"[*] Using Threads: {args.threads}")
+    print(f"[*] Using Threads: {workers}")
     
     bssid = bytes.fromhex(bssid.replace(":", ""))
     client = bytes.fromhex(client.replace(":", ""))
@@ -58,22 +60,26 @@ def main():
     stop_event = threading.Event()
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor, open(wordlist, "r", encoding='ISO-8859-1') as file:
-        pw_list = file.readlines()
-        print(f"[*] {len(pw_list)} passwords loaded from {wordlist}")
-        start = time.perf_counter()
+            start = time.perf_counter()
+            chunk_size = 100000  # Read in 100k chunks to reduce memory load
+            futures = []
+            
+            while True:
+                pw_list = file.readlines(chunk_size)
+                if not pw_list:
+                    break
+                
+                if stop_event.is_set():
+                    break
 
-        threads = []
-        for pw in pw_list:
-            if stop_event.is_set():
-                break
-            t = threading.Thread(target=find_pw, args=(pw, ssid, bssid, client, pmkid, stop_event), daemon=True)
-            threads.append(t)
-            t.start()
+                future = executor.submit(find_pw_chunk, pw_list, ssid, bssid, client, pmkid, stop_event)
+                futures.append(future)
 
-        for t in threads:
-            t.join()
+            for future in concurrent.futures.as_completed(futures):
+                pass
 
     finish = time.perf_counter()
     print(f'[+] Finished in {round(finish-start, 2)} second(s)')
+
 if __name__ == '__main__':
     main()
