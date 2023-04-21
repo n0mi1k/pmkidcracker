@@ -5,12 +5,21 @@ import threading
 import concurrent.futures
 import time
 
+
 def calculate_pmkid(pmk, ap_mac, sta_mac):
+    """
+    Calculates the PMKID with HMAC-SHA1[pmk + ("PMK Name" + bssid + clientmac)]
+    128 bit PMKID will be matched with captured PMKID to check if passphrase is valid
+    """
     pmkid = hmac.new(pmk, b"PMK Name" + ap_mac + sta_mac, sha1).digest()[:16]
     return pmkid
 
 
 def find_pw_chunk(pw_list, ssid, ap_mac, sta_mac, captured_pmkid, stop_event):
+    """
+    Finds the passphrase by computing pmk and passing into calculate_pmkid function.
+    256 bit pmk calculation: passphrase + salt(ssid) => PBKDF2(HMAC-SHA1) of 4096 iterations
+    """
     for pw in pw_list:
         if stop_event.is_set():
             break
@@ -21,9 +30,10 @@ def find_pw_chunk(pw_list, ssid, ap_mac, sta_mac, captured_pmkid, stop_event):
             print(f"\n[+] CRACKED WPA2 KEY: {password}")
             stop_event.set()
 
+
 def main():
-    parser = argparse.ArgumentParser(prog='pmkidcrack', 
-                                    description='A PMKID 1 message WPA2 cracker',
+    parser = argparse.ArgumentParser(prog='pmkidcracker', 
+                                    description='A PMKID 1 EAPOL message WPA2 cracker',
                                     usage='%(prog)s -s SSID -ap BSSID -c CLIENTMAC -p PMKID -w WORDLIST -t THREADS')
 
     workers = 10
@@ -33,7 +43,7 @@ def main():
     parser.add_argument("-p", "--pmkid", help="Message 1 PMKID in HEX", required=True)
     parser.add_argument("-w", "--wordlist", help="Dictionary wordlist to use", required=True)
     parser.add_argument("-t", "--threads", help="Number of threads (Default=10)", required=False)
-    parser.add_argument("-a", "--automatic", help="Specify PCAP file to use", required=False) # In development (Not Implemented)
+    parser.add_argument("-a", "--automatic", help="Specify PCAP file to use", required=False) # Future development (Not Implemented)
     args = parser.parse_args()
 
     ssid = (args.ssid).encode()
@@ -61,7 +71,7 @@ def main():
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor, open(wordlist, "r", encoding='ISO-8859-1') as file:
             start = time.perf_counter()
-            chunk_size = 100000  # Read in 100k chunks to reduce memory load
+            chunk_size = 100000
             futures = []
             
             while True:
@@ -80,6 +90,7 @@ def main():
 
     finish = time.perf_counter()
     print(f'[+] Finished in {round(finish-start, 2)} second(s)')
+
 
 if __name__ == '__main__':
     main()

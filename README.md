@@ -5,17 +5,27 @@ This program is a tool written in Python to recover the pre-shared key of a WPA2
 
 **DISCLAIMER:** This program is STRICTLY for educational and research purposes only. Only use on your own network or with permission.
 
-## Usage/Example
+## Program Usage
 
 ```
 python pmkidcracker.py -s <ssid> -ap <apmac> -c <clientmac> -p <pmkid> -w <wordlist> -t <threads(optional)>
 ```
+**NOTE:** apmac, clientmac, pmkid should be a hexstring, e.g b8621f50edd9
 
-## Obtaining PMKID
+## How PMKID is Calculated
+The two main formulas to obtain a PMKID are as follows: 
+1. **Pairwise Master Key (PMK) Calculation:** passphrase + salt(ssid) => PBKDF2(HMAC-SHA1) of 4096 iterations
+2. **PMKID Calculation:** HMAC-SHA1[pmk + ("PMK Name" + bssid + clientmac)]
 
-Below are the steps to obtain the PMKID manually by inspecting the packets in WireShark. You may use Hcxtools or Bettercap to quickly obtain the PMKID without the below steps. 
+This is just for understanding, both are already implemented in `find_pw_chunk` and `calculate_pmkid`.
 
-To obtain the PMKID, put your wireless antenna in monitor mode, start capturing all packets with airodump-ng or similar tools. Then connect to the AP using an invalid password to capture EAPOL 1 message. Follow the next 3 steps to obtain the fields needed for the arguments.
+## Obtaining the PMKID
+
+Below are the steps to obtain the PMKID manually by inspecting the packets in WireShark. 
+
+**\*You may use Hcxtools or Bettercap to quickly obtain the PMKID without the below steps. But this way is better for understanding** 
+
+To obtain the PMKID manually from wireshark, put your wireless antenna in monitor mode, start capturing all packets with airodump-ng or similar tools. Then connect to the AP using an invalid password to capture EAPOL 1 message. Follow the next 3 steps to obtain the fields needed for the arguments.
 
 **Open the pcap in WireShark:**
 
