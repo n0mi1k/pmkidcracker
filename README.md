@@ -10,7 +10,9 @@ This program is a tool written in Python to recover the pre-shared key of a WPA2
 ```
 python pmkidcracker.py -s <ssid> -ap <apmac> -c <clientmac> -p <pmkid> -w <wordlist> -t <threads(optional)>
 ```
-**NOTE:** apmac, clientmac, pmkid should be a hexstring, e.g b8621f50edd9
+<img width="549" alt="help" src="https://user-images.githubusercontent.com/28621928/233799923-71f70dc1-6750-4b70-a654-54976c696a74.png">
+
+**NOTE:** apmac, clientmac, pmkid must be a hexstring, e.g b8621f50edd9
 
 ## How PMKID is Calculated
 The two main formulas to obtain a PMKID are as follows: 
@@ -23,7 +25,7 @@ This is just for understanding, both are already implemented in `find_pw_chunk` 
 
 Below are the steps to obtain the PMKID manually by inspecting the packets in WireShark. 
 
-**\*You may use Hcxtools or Bettercap to quickly obtain the PMKID without the below steps. But this way is better for understanding** 
+**\*You may use Hcxtools or Bettercap to quickly obtain the PMKID without the below steps. The manual way is for understanding.** 
 
 To obtain the PMKID manually from wireshark, put your wireless antenna in monitor mode, start capturing all packets with airodump-ng or similar tools. Then connect to the AP using an invalid password to capture EAPOL 1 message. Follow the next 3 steps to obtain the fields needed for the arguments.
 

@@ -30,20 +30,29 @@ def find_pw_chunk(pw_list, ssid, ap_mac, sta_mac, captured_pmkid, stop_event):
             print(f"\n[+] CRACKED WPA2 KEY: {password}")
             stop_event.set()
 
+class CustomFormatter(argparse.HelpFormatter):
+    def format_help(self):
+        help_str = super().format_help()
+        art_str = r"""
+        ___  __  __  _  __ ___  ___    ___                 _             
+        | _ \|  \/  || |/ /|_ _||   \  / __| _ _  __ _  __ | |__ ___  _ _ 
+        |  _/| |\/| || ' <  | | | |) || (__ | '_|/ _` |/ _|| / // -_)| '_|
+        |_|  |_|  |_||_|\_\|___||___/  \___||_|  \__,_|\__||_\_\\___||_|                                                                
+        """
+        return art_str + "\n" + help_str
 
 def main():
     parser = argparse.ArgumentParser(prog='pmkidcracker', 
-                                    description='A PMKID 1 EAPOL message WPA2 cracker',
+                                    description='A multithreaded tool to crack WPA2 passphrase using obtained PMKID without clients or de-authentication.',
                                     usage='%(prog)s -s SSID -ap BSSID -c CLIENTMAC -p PMKID -w WORDLIST -t THREADS')
 
-    workers = 10
+    parser = argparse.ArgumentParser(formatter_class=CustomFormatter)
     parser.add_argument("-s", "--ssid", help="SSID of Target AP", required=True)
-    parser.add_argument("-ap", '--accesspoint', help="BSSID (Mac Addr) of AP", required=True)
-    parser.add_argument("-c", "--clientmac", help="Client Mac Addr, the initiator", required=True)
-    parser.add_argument("-p", "--pmkid", help="Message 1 PMKID in HEX", required=True)
+    parser.add_argument("-ap", '--accesspoint', help="BSSID of AP (hex)", required=True)
+    parser.add_argument("-c", "--clientmac", help="Client MAC Address, the initiator (hex)", required=True)
+    parser.add_argument("-p", "--pmkid", help="EAPOL Message 1 PMKID (hex)", required=True)
     parser.add_argument("-w", "--wordlist", help="Dictionary wordlist to use", required=True)
     parser.add_argument("-t", "--threads", help="Number of threads (Default=10)", required=False)
-    parser.add_argument("-a", "--automatic", help="Specify PCAP file to use", required=False) # Future development (Not Implemented)
     args = parser.parse_args()
 
     ssid = (args.ssid).encode()
@@ -52,6 +61,7 @@ def main():
     pmkid = args.pmkid
     wordlist = args.wordlist
 
+    workers = 10
     if args.threads is not None:
         workers = int(args.threads)
 
