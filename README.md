@@ -3,14 +3,11 @@
 
 This program is a tool written in Python to recover the pre-shared key of a WPA2 WiFi network without any de-authentication or requiring any clients to be on the network. It targets the weakness of certain access points advertising the PMKID value in EAPOL message 1.
 
-**DISCLAIMER:** This program is STRICTLY for educational and research purposes only. Only use on your own network or with permission.
-
 ## Program Usage
-
 ```
-python pmkidcracker.py -s <ssid> -ap <apmac> -c <clientmac> -p <pmkid> -w <wordlist> -t <threads(optional)>
+python pmkidcracker.py -s <SSID> -ap <APMAC> -c <CLIENTMAC> -p <PMKID> -w <WORDLIST> -t <THREADS(Optional)>
 ```
-<img width="549" alt="help" src="https://user-images.githubusercontent.com/28621928/233799923-71f70dc1-6750-4b70-a654-54976c696a74.png">
+<img width="549" alt="help" src="https://github.com/n0mi1k/pmkidcracker/assets/28621928/2ebf5b8b-fccb-4465-86a4-1bb117117018">
 
 **NOTE:** apmac, clientmac, pmkid must be a hexstring, e.g b8621f50edd9
 
@@ -43,3 +40,5 @@ To obtain the PMKID manually from wireshark, put your wireless antenna in monito
 
 <img width="431" alt="cracked" src="https://user-images.githubusercontent.com/28621928/232557213-5f5746e7-6cdb-4346-a0c7-31e66c34a7d1.png">
 
+## Disclaimer
+This tool is for educational and testing purposes only. Do not use it to exploit the vulnerability on any network that you do not own or have permission to test. The authors of this script are not responsible for any misuse or damage caused by its use.
